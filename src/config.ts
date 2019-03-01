@@ -3,7 +3,7 @@ import { blue, green, grey, purple, red, pink, yellow } from "@material-ui/core/
 
 
 export const VIEWER_APP_NAME = 'xcube Viewer';
-export const VIEWER_API_SERVER_URL = 'http://localhost:8080/xcube/api/0.1.0.dev6';
+export const VIEWER_API_SERVER_URL = 'http://xcube.dcs4cop.eu/dcs4cop-dev/api/0.1.0.dev6';
 
 export const VIEWER_THEME = 'dark';
 export const VIEWER_PRIMARY_COLOR = blue;
