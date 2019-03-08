@@ -11,6 +11,7 @@ import CardActionArea from "@material-ui/core/CardActionArea";
 
 import lake from "../resources/roxen1.jpg";
 import { I18N } from "../config";
+import { WithLocale } from "../util/lang";
 
 console.log("lake = ", lake);
 
@@ -26,7 +27,7 @@ const styles = (theme: Theme) => createStyles(
     }
 );
 
-interface InfoCardProps extends WithStyles<typeof styles> {
+interface InfoCardProps extends WithStyles<typeof styles>, WithLocale {
 }
 
 // TODO (forman): Replace mock content
@@ -60,11 +61,11 @@ class InfoCard extends React.PureComponent<InfoCardProps> {
                 </CardActionArea>
                 <CardActions>
                     <Button size="small" color="primary">
-                        {I18N.text`Share`}
+                        {I18N.get("Share")}
                     </Button>
                     <Button size="small" color="primary"
                             onClick={() => window.open("https://sv.wikipedia.org/wiki/Roxen", "_blank")}>
-                        {I18N.text`Learn more`}
+                        {I18N.get("Learn more")}
                     </Button>
                 </CardActions>
             </Card>

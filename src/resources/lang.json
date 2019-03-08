@@ -101,6 +101,18 @@
       "de": "Einstellungen",
       "se": "Inställningar",
       "fi": "Asetukset"
+    },
+    {
+      "en": "Share",
+      "de": "Teilen",
+      "se": "Dela",
+      "fi": "Jakaa"
+    },
+    {
+      "en": "Learn more",
+      "de": "Mehr lernen",
+      "se": "Läs mer",
+      "fi": "Lisätietoja"
     }
   ]
 }

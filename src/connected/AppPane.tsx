@@ -8,7 +8,7 @@ import { AppState } from '../states/appState';
 import ControlBar from "./ControlBar";
 import Viewer from './Viewer';
 import TimeRangeControl from './TimeRangeSlider';
-import InfoCard from "../components/InfoCard";
+import InfoCard from "./InfoCard";
 
 
 interface AppPaneProps extends WithStyles<typeof styles> {
