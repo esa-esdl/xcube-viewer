@@ -16,7 +16,9 @@ interface AppPaneProps extends WithStyles<typeof styles> {
 
 // noinspection JSUnusedLocalSymbols
 const mapStateToProps = (state: AppState) => {
-    return {};
+    return {
+        locale: state.controlState.locale,
+    };
 };
 
 const mapDispatchToProps = {};
