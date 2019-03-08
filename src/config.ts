@@ -23,7 +23,7 @@ export const LINECHART_STROKES_DARK = LINECHART_STROKES_BASE.map(color => color[
 
 export const I18N = new Database();
 
-I18N.locale = 'en';
+I18N.locale = 'se';
 
 I18N.set('en')`Dataset`
     .add('de')`Datensatz`
@@ -96,3 +96,13 @@ I18N.set('en')`Cannot reach server`
     .add('de')`Kann Server nicht erreichen`
     .add('se')`Kan inte nå servern`
     .add('fi')`Palvelimeen ei pääse`;
+
+I18N.set('en')`Share`
+    .add('de')`Teilen`
+    .add('se')`Dela`
+    .add('de')`Jakaa`;
+
+I18N.set('en')`Learn more`
+    .add('de')`Lern mehr`
+    .add('se')`Läs mer`
+    .add('de')`Lisätietoja`;
