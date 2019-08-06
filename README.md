@@ -1,4 +1,6 @@
-# xcube-viewer
+[![Build Status](https://travis-ci.org/esa-esdl/xcube-viewer.svg?branch=master)](https://travis-ci.org/esa-esdl/xcube-viewer)
+
+# ESDL xcube-viewer
 
 A simple viewer component for Xcube server.
 
