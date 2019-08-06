@@ -6,8 +6,8 @@ export const VIEWER_APP_NAME = 'xcube Viewer';
 
 export const VIEWER_DEFAULT_API_SERVER = {
     id: 'local',
-    name: 'Local Server',
-    url: 'http://localhost:8080'
+    name: 'Server on earthsystemdatalab',
+    url: 'https://xcube.earthsystemdatalab.net/esdl-dev'
 };
 
 export const VIEWER_API_SERVERS = [
