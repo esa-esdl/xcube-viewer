@@ -1,13 +1,19 @@
-import { blue, green, grey, purple, red, pink, yellow, orange, cyan, indigo } from "@material-ui/core/colors";
-import { LanguageDictionary } from "./util/lang";
-import lang from "./resources/lang.json";
+import { blue, green, grey, purple, red, pink, yellow, orange, cyan, indigo } from '@material-ui/core/colors';
+import { LanguageDictionary } from './util/lang';
+import { getQueryParameterByName } from './util/qparam';
+import lang from './resources/lang.json';
 
 export const VIEWER_APP_NAME = 'xcube Viewer';
 
+
+export const VIEWER_DEFAULT_API_SERVER_NAME = 'Server on earthsystemdatalab';
+export const VIEWER_DEFAULT_API_SERVER_URL = 'https://xcube.earthsystemdatalab.net';
+
+
 export const VIEWER_DEFAULT_API_SERVER = {
-    id: 'local',
-    name: 'Server on earthsystemdatalab',
-    url: 'https://xcube.earthsystemdatalab.net/esdl-dev'
+    id: 'default',
+    name: getQueryParameterByName(null, 'serverName', VIEWER_DEFAULT_API_SERVER_NAME)!,
+    url: getQueryParameterByName(null, 'serverUrl', VIEWER_DEFAULT_API_SERVER_URL)!,
 };
 
 export const VIEWER_API_SERVERS = [
