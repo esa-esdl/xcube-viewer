@@ -27,19 +27,24 @@ A simple viewer component for Xcube server.
     $ conda activate xcube  
     $ xcube serve --verbose --traceperf --config xcube/webapi/res/demo/config.yml  
     
+If errors occur, you may need to update the environment:
+
+    $ conda env update
 
 
-`xcube-viewer` one-time install:
+Checkout `xcube-viewer` sources:
 
     $ git clone https://github.com/dcs4cop/xcube-viewer.git
-    $ cd xcube-viewer
-    $ yarn install
 
-`xcube-viewer` update and run:
+`xcube-viewer` update, install, and run:
 
     $ cd xcube-viewer
     $ git pull
     $ yarn run start
+
+If errors occur, you may need to update the environment:
+
+    $ yarn install
 
 
 ## Features
@@ -49,6 +54,7 @@ A simple viewer component for Xcube server.
 * Select variable and show as layer on map
 * Select time and update variable layer on map
 * Click in map and show time series chart
+* Select a place and show time series chart
 * Select dataset and fly to bounding box
 * Select place and fly to bounding box
 * Click in time series chart and select time
