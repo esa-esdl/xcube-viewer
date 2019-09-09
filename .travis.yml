@@ -20,6 +20,6 @@ deploy:
     github_token: $GITHUB_TOKEN
     repo: esa-esdl/esa-esdl.github.io
     target-branch: master
-    local_dir: build
+    local_dir: dist
     on:
       branch: master
