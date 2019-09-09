@@ -15,11 +15,9 @@ after_success:
 deploy:
   - provider: pages
     skip_cleanup: true
-    keep-history: true
     target_branch: gh-pages
     github_token: $GITHUB_TOKEN
     repo: esa-esdl/esa-esdl.github.io
     target-branch: master
-    local_dir: dist
     on:
       branch: master
