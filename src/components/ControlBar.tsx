@@ -6,7 +6,7 @@ const styles = (theme: Theme) => createStyles(
         root: {
             display: 'flex',
             flexWrap: 'wrap',
-            padding: theme.spacing.unit,
+            padding: theme.spacing(1),
         },
     });
 
@@ -26,4 +26,3 @@ class ControlBar extends React.Component<ControlBarProps> {
 }
 
 export default withStyles(styles)(ControlBar);
-

@@ -4,10 +4,12 @@ import { AppState } from '../states/appState';
 import {
     selectedColorBarLegendSelector,
     selectedDatasetPlaceGroupLayersSelector,
-    selectedDatasetVariableLayerSelector
+    selectedDatasetVariableLayerSelector, selectedPlaceGroupPlacesSelector
 } from '../selectors/controlSelectors';
-import { addGeometry } from '../actions/controlActions';
+import { addUserPlace } from '../actions/dataActions';
 import Viewer from '../components/Viewer';
+import { userPlaceGroupSelector } from "../selectors/dataSelectors";
+import { selectPlace } from "../actions/controlActions";
 
 
 const mapStateToProps = (state: AppState) => {
@@ -16,13 +18,17 @@ const mapStateToProps = (state: AppState) => {
         variableLayer: selectedDatasetVariableLayerSelector(state),
         placeGroupLayers: selectedDatasetPlaceGroupLayersSelector(state),
         colorBarLegend: selectedColorBarLegendSelector(state),
-        drawMode: state.controlState.selectedDrawMode,
+        userPlaceGroup: userPlaceGroupSelector(state),
+        mapInteraction: state.controlState.mapInteraction,
         flyTo: state.controlState.flyTo,
+        selectedPlaceId: state.controlState.selectedPlaceId,
+        places: selectedPlaceGroupPlacesSelector(state),
     }
 };
 
 const mapDispatchToProps = {
-    addGeometry,
+    addUserPlace,
+    selectPlace,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Viewer);

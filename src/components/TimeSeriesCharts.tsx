@@ -5,9 +5,7 @@ import { Theme } from '@material-ui/core';
 import { WithLocale } from '../util/lang';
 import TimeSeriesChart from './TimeSeriesChart';
 import { Time, TimeRange, TimeSeriesGroup } from '../model/timeSeries';
-// import Card from '@material-ui/core/Card';
-// import CardContent from '@material-ui/core/CardContent';
-// import Typography from '@material-ui/core/Typography';
+import { Place, PlaceInfo } from "../model/place";
 import TimeRangeSlider from './TimeRangeSlider';
 
 
@@ -36,13 +34,17 @@ interface TimeSeriesChartsProps extends WithStyles<typeof styles>, WithLocale {
     selectedTime?: Time | null;
     selectTime?: (time: Time | null) => void;
 
+    showPointsOnly: boolean;
+    showErrorBars: boolean;
+
     dataTimeRange?: TimeRange | null;
     selectedTimeRange?: TimeRange | null;
     selectTimeRange?: (timeRange: TimeRange | null) => void;
-    visibleTimeRange?: TimeRange | null;
-    updateVisibleTimeRange?: (timeRange: TimeRange | null) => void;
 
     removeTimeSeriesGroup?: (id: string) => void;
+    placeInfos?: { [placeId: string]: PlaceInfo };
+    selectPlace: (placeId: string | null, places: Place[], showInMap: boolean) => void;
+    places: Place[];
 }
 
 class TimeSeriesCharts extends React.Component<TimeSeriesChartsProps> {
@@ -53,56 +55,50 @@ class TimeSeriesCharts extends React.Component<TimeSeriesChartsProps> {
             timeSeriesGroups,
             selectedTime, selectedTimeRange,
             dataTimeRange, selectTime, selectTimeRange,
-            removeTimeSeriesGroup,
-            visibleTimeRange,
-            updateVisibleTimeRange,
-        }
-            = this.props;
-        const charts = timeSeriesGroups.map(timeSeriesGroup => (
-            <TimeSeriesChart
-                key={timeSeriesGroup.id}
-                locale={locale}
-                timeSeriesGroup={timeSeriesGroup}
-                selectedTime={selectedTime}
-                selectedTimeRange={selectedTimeRange}
-                dataTimeRange={dataTimeRange}
-                selectTime={selectTime}
-                selectTimeRange={selectTimeRange}
-                removeTimeSeriesGroup={removeTimeSeriesGroup}
-            />)
-        );
-        if (charts.length > 0) {
+            removeTimeSeriesGroup, showPointsOnly, showErrorBars,
+            placeInfos, places, selectPlace
+        } = this.props;
+
+        const charts = timeSeriesGroups.map((timeSeriesGroup: TimeSeriesGroup) => {
+            const completed = timeSeriesGroup.timeSeriesArray.map(item => (
+                item.dataProgress ? 100 * item.dataProgress : 0
+            ));
+
             return (
-                <div className={classes.chartContainer}>
-                    <TimeRangeSlider
-                        selectedTimeRange={selectedTimeRange}
-                        dataTimeRange={dataTimeRange}
-                        selectTimeRange={selectTimeRange}
-                        visibleTimeRange={visibleTimeRange}
-                        updateVisibleTimeRange={updateVisibleTimeRange}
-                    />
-                    {charts}
-                </div>
+                <TimeSeriesChart
+                    key={timeSeriesGroup.id}
+                    locale={locale}
+                    timeSeriesGroup={timeSeriesGroup}
+                    selectedTime={selectedTime}
+                    selectedTimeRange={selectedTimeRange}
+                    dataTimeRange={dataTimeRange}
+                    selectTime={selectTime}
+                    selectTimeRange={selectTimeRange}
+                    removeTimeSeriesGroup={removeTimeSeriesGroup}
+                    completed={completed}
+                    showPointsOnly={showPointsOnly}
+                    showErrorBars={showErrorBars}
+                    placeInfos={placeInfos}
+                    places={places}
+                    selectPlace={selectPlace}
+                />
             );
-        } else {
+        });
+
+        if (charts.length === 0) {
             return null;
-            /*
-            return (
-                <div className={classes.chartContainer}>
-                    <Card className={classes.noChartsCard}>
-                        <CardContent>
-                            <Typography className={classes.noChartsTitle} color="textSecondary" gutterBottom>
-                                {"No Time-Series Loaded"}
-                            </Typography>
-                            <Typography component="p">
-                                {"Click into map to load time-series for that point!"}
-                            </Typography>
-                        </CardContent>
-                    </Card>
-                </div>
-            );
-            */
         }
+
+        return (
+            <div className={classes.chartContainer}>
+                <TimeRangeSlider
+                    selectedTimeRange={selectedTimeRange}
+                    dataTimeRange={dataTimeRange}
+                    selectTimeRange={selectTimeRange}
+                />
+                {charts}
+            </div>
+        );
     }
 }
 

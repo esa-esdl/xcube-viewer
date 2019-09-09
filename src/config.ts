@@ -9,7 +9,6 @@ export const VIEWER_APP_NAME = 'xcube Viewer';
 export const VIEWER_DEFAULT_API_SERVER_NAME = 'Server on earthsystemdatalab';
 export const VIEWER_DEFAULT_API_SERVER_URL = 'https://xcube.earthsystemdatalab.net';
 
-
 export const VIEWER_DEFAULT_API_SERVER = {
     id: 'default',
     name: getQueryParameterByName(null, 'serverName', VIEWER_DEFAULT_API_SERVER_NAME)!,
