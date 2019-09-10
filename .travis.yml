@@ -22,3 +22,11 @@ deploy:
     local_dir: build
     on:
       branch: master
+  - provider: pages
+    skip_cleanup: true
+    keep-history: true
+    github_token: $GITHUB_TOKEN
+    target-branch: gh-pages
+    local_dir: build
+    on:
+      branch: master
