@@ -82,7 +82,6 @@ class Viewer extends React.Component<ViewerProps> {
                     }
                 }
             }
-            console.log("selectedPlaceId =", selectedPlaceId);
             if (selectPlace) {
                 selectPlace(selectedPlaceId, places, false);
             }
@@ -119,8 +118,6 @@ class Viewer extends React.Component<ViewerProps> {
             } else {
                 feature.setStyle(createGeometryStyle([255, 255, 255, 0.25], shadedColor, 2));
             }
-
-            console.log('geoJSONGeometry =', geoJSONGeometry);
 
             const nameBase = I18N.get(mapInteraction);
             let label: string;
