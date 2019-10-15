@@ -9,6 +9,8 @@ script:
   - yarn install
   - yarn run build
   #- yarn run test
+  - git clone --single-branch --branch gh-pages https://github.com/esa-esdl/ESDL.jl.git
+  - cp -r ESDL.jl/dev build/ESDL.jl
 after_success:
   - codecov
 
@@ -19,14 +21,6 @@ deploy:
     github_token: $GITHUB_TOKEN
     repo: esa-esdl/esa-esdl.github.io
     target-branch: master
-    local_dir: build
-    on:
-      branch: master
-  - provider: pages
-    skip_cleanup: true
-    keep-history: true
-    github_token: $GITHUB_TOKEN
-    target-branch: gh-pages
     local_dir: build
     on:
       branch: master
