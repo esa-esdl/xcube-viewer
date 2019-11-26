@@ -10,12 +10,12 @@ script:
   - yarn run build
 
 deploy:
-  - provider: pages
+  - provider: s3
     skip_cleanup: true
     keep-history: true
-    github_token: $GITHUB_TOKEN
-    repo: esa-esdl/esa-esdl.github.io
-    target-branch: master
     local_dir: build
+    access_key_id: "AKIAVBLQBN5YERU65A43"
+    secret_access_key: "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"
+    bucket: "viewer.earthsystemdatalab.net"
     on:
       branch: master
