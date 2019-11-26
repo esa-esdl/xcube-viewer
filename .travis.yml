@@ -16,6 +16,8 @@ deploy:
     local_dir: build
     access_key_id: $AWS_ACCESS_KEY_ID
     secret_access_key: $AWS_SECRET_ACCESS_KEY
+    region: "eu-central-1"
+    endpoint: "s3.eu-central-1.amazonaws.com"
     bucket: "viewer.earthsystemdatalab.net"
     on:
       branch: master
