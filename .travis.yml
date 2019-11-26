@@ -19,5 +19,6 @@ deploy:
     region: "eu-central-1"
     endpoint: "s3.eu-central-1.amazonaws.com"
     bucket: "viewer.earthsystemdatalab.net"
+    acl: public_read
     on:
       branch: master
