@@ -14,8 +14,8 @@ deploy:
     skip_cleanup: true
     keep-history: true
     local_dir: build
-    access_key_id: "AKIAVBLQBN5YERU65A43"
-    secret_access_key: "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"
+    access_key_id: $AWS_ACCESS_KEY_ID
+    secret_access_key: $AWS_SECRET_ACCESS_KEY
     bucket: "viewer.earthsystemdatalab.net"
     on:
       branch: master
