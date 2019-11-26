@@ -4,14 +4,14 @@ import { getQueryParameterByName } from './util/qparam';
 import lang from './resources/lang.json';
 
 export const VIEWER_APP_NAME = 'xcube Viewer';
-export const VIEWER_VERSION = '0.2.0';
+export const VIEWER_VERSION = '0.4.0-dev.0';
 
-
+export const VIEWER_DEFAULT_API_SERVER_ID = 'ESDL';
 export const VIEWER_DEFAULT_API_SERVER_NAME = 'Server on earthsystemdatalab';
 export const VIEWER_DEFAULT_API_SERVER_URL = 'https://xcube.earthsystemdatalab.net';
 
 export const VIEWER_DEFAULT_API_SERVER = {
-    id: 'default',
+    id: VIEWER_DEFAULT_API_SERVER_ID,
     name: getQueryParameterByName(null, 'serverName', VIEWER_DEFAULT_API_SERVER_NAME)!,
     url: getQueryParameterByName(null, 'serverUrl', VIEWER_DEFAULT_API_SERVER_URL)!,
 };

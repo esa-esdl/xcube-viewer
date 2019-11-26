@@ -1,5 +1,34 @@
+## Changes in version 0.4.0 (in development)
 
-## Changes in version 0.2
+## Changes in version 0.3.1
+
+Fixed translation of legal agreement.
+
+## Changes in version 0.3.0
+
+### Enhancements
+
+* It is now possible to adjust the color bar min/max value and the colors. (#29)
+
+### Other changes
+
+* Now requires xcube 0.3.0 as backend.
+
+## Changes in version 0.2.1
+
+### Enhancements
+
+* A new setting allows to turn image smoothing of image layers on and off.
+  By default it is off now, so that crisp image pixels are shown without any blurring. (#86)
+* The color bar legend uses 5 tick marks instead of the two.
+* Added simple scale indicator to map.
+
+### Other changes
+
+* Now using OpenLayers 6.1.1.
+
+
+## Changes in version 0.2.0
 
 * Users can now draw polygons and circles and show respective time-series. (#32)
   In total there are now 4 new interactions with the map:
