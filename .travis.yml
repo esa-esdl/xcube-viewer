@@ -17,7 +17,7 @@ deploy:
   - provider: s3
     skip_cleanup: true
     keep-history: true
-    local_dir: xcube-viewer-0.3.2/build
+    local_dir: build
     access_key_id: $AWS_ACCESS_KEY_ID
     secret_access_key: $AWS_SECRET_ACCESS_KEY
     region: "eu-central-1"
