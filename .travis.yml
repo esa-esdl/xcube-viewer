@@ -1,13 +1,16 @@
 language: node_js
 node_js:
   - "stable"
+
+env:
+  XCUBE_VIEWER_VERSION=0.3.2
 cache:
   yarn: true
   directories:
     - node_modules
 script:
-  # - wget https://github.com/dcs4cop/xcube-viewer/archive/v0.3.2.tar.gz
-  # - tar xzvf v0.3.2.tar.gz
+  # - wget https://github.com/dcs4cop/xcube-viewer/archive/v${XCUBE_VIEWER_VERSION}.tar.gz
+  # - tar xzvf vv${XCUBE_VIEWER_VERSION}.tar.gz
   - git clone https://github.com/dcs4cop/xcube-viewer
   - cp .env xcube-viewer
   - cd xcube-viewer
