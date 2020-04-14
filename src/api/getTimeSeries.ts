@@ -1,8 +1,8 @@
 import * as geojson from 'geojson';
 
 import { Variable } from '../model/variable';
-import { TimeSeries } from '../model/timeSeries';
-import { callJsonApi, QueryComponent } from './callApi';
+import { TimeSeries, TimeSeriesPoint } from '../model/timeSeries';
+import { callJsonApi, makeRequestInit, makeRequestUrl, QueryComponent } from './callApi';
 
 
 export function getTimeSeriesForGeometry(apiServerUrl: string,
@@ -12,28 +12,45 @@ export function getTimeSeriesForGeometry(apiServerUrl: string,
                                          geometry: geojson.Geometry,
                                          startDate: string | null,
                                          endDate: string | null,
-                                         inclStDev: boolean): Promise<TimeSeries | null> {
+                                         useMedian: boolean,
+                                         inclStDev: boolean,
+                                         accessToken: string | null): Promise<TimeSeries | null> {
 
-    const url = apiServerUrl + `/ts/${datasetId}/${variable.name}/geometry`;
+    let valueDataKey: keyof TimeSeriesPoint;
+    let errorDataKey: keyof TimeSeriesPoint | null = null;
+    const query: QueryComponent[] = [];
+    if (useMedian) {
+        query.push(['aggMethods', 'median']);
+        valueDataKey = 'median';
+    } else if (inclStDev) {
+        query.push(['aggMethods', 'mean,std']);
+        valueDataKey = 'mean';
+        errorDataKey = 'std';
+    } else {
+        query.push(['aggMethods', 'mean']);
+        valueDataKey = 'mean';
+    }
+    if (startDate) {
+        query.push(['startDate', startDate]);
+    }
+    if (endDate) {
+        query.push(['endDate', endDate]);
+    }
+    const url = makeRequestUrl(`${apiServerUrl}/timeseries/${datasetId}/${variable.name}`, query);
+
     const init = {
+        ...makeRequestInit(accessToken),
         method: 'post',
         body: JSON.stringify(geometry),
     };
-    const queryComponents: QueryComponent[] = [['inclStDev', inclStDev ? '1' : '0']];
-    if (startDate) {
-        queryComponents.push(['startDate', startDate]);
-    }
-    if (endDate) {
-        queryComponents.push(['endDate', endDate]);
-    }
 
     const convertTimeSeriesResult = (result: { [name: string]: any }) => {
-        const results = result['results'];
-        if (!results || results.length === 0) {
+        result = result['result'];
+        if (!result || result.length === 0) {
             return null;
         }
-        const data = results.map((item: any) => {
-            return {time: new Date(item.date).getTime(), ...item.result};
+        const data = result.map((item: any) => {
+            return {...item, time: new Date(item.time).getTime()};
         });
         const source = {
             datasetId,
@@ -41,10 +58,12 @@ export function getTimeSeriesForGeometry(apiServerUrl: string,
             variableUnits: variable.units || undefined,
             placeId,
             geometry,
+            valueDataKey,
+            errorDataKey,
         };
         return {source, data, color: "green"};
     };
 
-    return callJsonApi<TimeSeries>(url, queryComponents, init)
+    return callJsonApi<TimeSeries>(url, init)
         .then(convertTimeSeriesResult);
 }

@@ -21,12 +21,14 @@ import Box from '@material-ui/core/Box';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { equalTimeRanges, Time, TimeRange, TimeSeries, TimeSeriesGroup, TimeSeriesPoint } from '../model/timeSeries';
-import { utcTimeToLocalDateString, utcTimeToLocalDateTimeString } from '../util/time';
+import { utcTimeToIsoDateString, utcTimeToIsoDateTimeString } from '../util/time';
 import { getUserPlaceColor, I18N } from '../config';
 import { WithLocale } from '../util/lang';
 import { Place, PlaceInfo } from '../model/place';
 import { useState } from 'react';
 
+const INVISIBLE_LINE_COLOR = '#00000000';
+const SUBSTITUTE_LABEL_COLOR = '#FAFFDD';
 
 const styles = (theme: Theme) => createStyles(
     {
@@ -142,7 +144,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         if (typeof value !== 'number' || !Number.isFinite(value)) {
             return null;
         }
-        return utcTimeToLocalDateString(value);
+        return utcTimeToIsoDateString(value);
     };
 
     const handleClick = (event: any) => {
@@ -208,9 +210,12 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         }
     };
 
+    let commonValueDataKey: keyof TimeSeriesPoint | null = null;
+
     const lines = timeSeriesGroup.timeSeriesArray.map((ts, i) => {
 
         const source = ts.source;
+        const valueDataKey = source.valueDataKey;
         let lineName = source.variableName;
         let lineColor = 'yellow';
         if (placeInfos) {
@@ -229,9 +234,8 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         }
 
         const data: TimeSeriesPoint[] = [];
-        let hasErrorBars = false;
         ts.data.forEach(point => {
-            if (point.average !== null) {
+            if (point[valueDataKey] !== null) {
                 let time1Ok = true;
                 let time2Ok = true;
                 if (time1 !== null) {
@@ -242,19 +246,18 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
                 }
                 if (time1Ok && time2Ok) {
                     data.push(point);
-                    // noinspection SuspiciousTypeOfGuard
-                    if ((typeof point.uncertainty) === 'number') {
-                        hasErrorBars = true;
-                    }
                 }
             }
         });
+        if (commonValueDataKey === null) {
+            commonValueDataKey = valueDataKey;
+        }
         const shadedLineColor = getUserPlaceColor(lineColor, paletteType);
         let errorBar;
-        if (showErrorBars && hasErrorBars) {
+        if (valueDataKey && showErrorBars && source.errorDataKey) {
             errorBar = (
                 <ErrorBar
-                    dataKey="uncertainty"
+                    dataKey={source.errorDataKey}
                     width={4}
                     strokeWidth={1}
                     stroke={shadedLineColor}
@@ -268,10 +271,10 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
                 name={lineName}
                 unit={source.variableUnits}
                 data={data}
-                dataKey="average"
+                dataKey={valueDataKey}
                 dot={<CustomizedDot radius={4} stroke={shadedLineColor} fill={'white'} strokeWidth={3}/>}
                 activeDot={<CustomizedDot radius={4} stroke={'white'} fill={shadedLineColor} strokeWidth={3}/>}
-                stroke={showPointsOnly ? '#00000000' : shadedLineColor}
+                stroke={showPointsOnly ? INVISIBLE_LINE_COLOR : shadedLineColor}
                 strokeWidth={3 * (ts.dataProgress || 1)}
                 isAnimationActive={ts.dataProgress === 1.0}
                 onClick={() => handleTimeSeriesClick(timeSeriesGroup.id, i, ts)}
@@ -364,7 +367,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
                            stroke={labelTextColor}
                            allowDuplicatedCategory={false}
                     />
-                    <YAxis dataKey="average"
+                    <YAxis dataKey={commonValueDataKey || "mean"}
                            type="number"
                            domain={Y_AXIS_DOMAIN}
                            stroke={labelTextColor}
@@ -398,22 +401,28 @@ const _CustomTooltip: React.FC<_CustomTooltipProps> = ({classes, active, label, 
         return null;
     }
     const items = payload.map((p: TooltipPayload, index: number) => {
-        let {name, value, color, unit} = p;
+        //console.log("payload:", p);
+        let {name, value, color, unit, dataKey} = p;
         if (typeof value !== 'number') {
             return null;
         }
         // let valueText;
-        // if (typeof p.uncertainty === 'number') {
-        //     valueText = `${value.toFixed(2)} ±${p.uncertainty.toFixed(2)} (uncertainty)`;
+        // if (typeof p.std === 'number') {
+        //     valueText = `${value.toFixed(2)} ±${p.std.toFixed(2)} (std)`;
         // } else {
         //     valueText = value.toFixed(3);
         // }
         const valueText = value.toFixed(3);
+        if (color === INVISIBLE_LINE_COLOR) {
+            color = SUBSTITUTE_LABEL_COLOR;
+        }
+        const isPoint = name.indexOf(':') !== -1;
+        const suffix = isPoint ? '' : ` (${dataKey})`;
         return (
             <div key={index}>
                 <span>{name}:&nbsp;</span>
-                <span className={classes.toolTipValue} style={{color: color}}>{valueText}</span>
-                <span>&nbsp;{unit}</span>
+                <span className={classes.toolTipValue} style={{color}}>{valueText}</span>
+                <span>&nbsp;{`${unit} ${suffix}`}</span>
             </div>
         );
     });
@@ -424,7 +433,7 @@ const _CustomTooltip: React.FC<_CustomTooltipProps> = ({classes, active, label, 
 
     return (
         <div className={classes.toolTipContainer}>
-            <span className={classes.toolTipLabel}>{`${utcTimeToLocalDateTimeString(label)}`}</span>
+            <span className={classes.toolTipLabel}>{`${utcTimeToIsoDateTimeString(label)} UTC`}</span>
             {items}
         </div>
     );

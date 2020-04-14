@@ -12,6 +12,16 @@ export const TIME_ANIMATION_INTERVALS: TimeAnimationInterval[] = [250, 500, 1000
 
 export type MapInteraction = 'Select' | 'Point' | 'Polygon' | 'Circle';
 
+
+export interface InfoCardElementState {
+    visible?: boolean;
+    viewMode?: string;
+}
+
+export interface InfoCardElementStates {
+    [key: string]: InfoCardElementState;
+}
+
 export interface ControlState {
     selectedDatasetId: string | null;
     selectedVariableName: string | null;
@@ -24,17 +34,22 @@ export interface ControlState {
     timeSeriesUpdateMode: 'add' | 'replace';
     timeAnimationActive: boolean;
     timeAnimationInterval: TimeAnimationInterval;
+    timeChunkSize: number;
     autoShowTimeSeries: boolean;
     showTimeSeriesPointsOnly: boolean;
     showTimeSeriesErrorBars: boolean;
+    showTimeSeriesMedian: boolean;
     flyTo: OlGeometry | OlExtent | null;
     activities: { [id: string]: string };
     locale: string;
     dialogOpen: { [dialogId: string]: boolean };
     legalAgreementAccepted: boolean;
     mapInteraction: MapInteraction;
+    infoCardOpen: boolean;
+    infoCardElementStates: InfoCardElementStates;
     imageSmoothingEnabled: boolean;
     baseMapUrl: string;
+    showRgbLayer: boolean;
 }
 
 
@@ -52,15 +67,24 @@ export function newControlState(): ControlState {
         timeSeriesUpdateMode: 'add',
         timeAnimationActive: false,
         timeAnimationInterval: 1000,
+        timeChunkSize: 20,
         autoShowTimeSeries: true,
         showTimeSeriesPointsOnly: false,
         showTimeSeriesErrorBars: true,
+        showTimeSeriesMedian: branding.defaultAgg === 'median',
         flyTo: null,
         activities: {},
         locale: 'en',
         dialogOpen: {},
         legalAgreementAccepted: false,
         mapInteraction: 'Point',
+        showRgbLayer: false,
+        infoCardOpen: false,
+        infoCardElementStates: {
+            dataset: {visible: true, viewMode: 'text'},
+            variable: {visible: true, viewMode: 'text'},
+            place: {visible: true, viewMode: 'text'},
+        },
         imageSmoothingEnabled: false,
         baseMapUrl: branding.baseMapUrl || 'http://a.tile.osm.org/{z}/{x}/{y}.png',
     };

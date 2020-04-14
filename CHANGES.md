@@ -9,6 +9,8 @@
 
 * Updated code to use latest React 16.8 features i.e. `React.FC` with hooks (#111)
 
+* Users can now login. (#22)
+
 ## Changes in version 0.3.1
 
 Fixed translation of legal agreement.

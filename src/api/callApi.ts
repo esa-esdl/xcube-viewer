@@ -4,16 +4,35 @@ import { I18N } from '../config';
 
 export type QueryComponent = [string, string];
 
-export function callApi<T>(endpointUrl: string, queryComponents?: QueryComponent[], init?: RequestInit): Promise<Response> {
-
-    let url = endpointUrl;
-    if (queryComponents && queryComponents.length > 0) {
-        const queryString = queryComponents.map(kv => kv.map(encodeURIComponent).join('=')).join('&');
-        url += '?' + queryString;
+export function makeRequestInit(accessToken: string | null): RequestInit {
+    if (accessToken) {
+        console.log(`Access token!!`);
+        return {
+            headers: [['Authorization', `Bearer ${accessToken}`]],
+        };
     }
+    return {};
+}
 
-    // TODO (forman): enable debug logging by switch
-    // console.debug('Calling API: ', url);
+export function makeRequestUrl(url: string, query: QueryComponent[]) {
+    if (query.length > 0) {
+        const queryString = query.map(kv => kv.map(encodeURIComponent).join('=')).join('&');
+        if (!url.includes('?')) {
+            return url + '?' + queryString;
+        } else if (!url.endsWith('&')) {
+            return url +  '&' + queryString;
+        } else {
+            return url +  queryString;
+        }
+    }
+    return url;
+}
+
+export function callApi<T>(url: string, init?: RequestInit): Promise<Response> {
+
+    if (process.env.NODE_ENV === 'development') {
+        console.debug('Calling API: ', url);
+    }
 
     return fetch(url, init)
         .then(response => {
@@ -24,16 +43,16 @@ export function callApi<T>(endpointUrl: string, queryComponents?: QueryComponent
         })
         .catch(error => {
             if (error instanceof TypeError) {
-                console.error(`Server did not respond for ${endpointUrl}. `
+                console.error(`Server did not respond for ${url}. `
                               +  "May be caused by timeout, refused connection, network error, etc.", error);
                 throw new Error(I18N.get("Cannot reach server"));
             } else {
                 console.error(error);
+                throw error;
             }
-            throw error;
         });
 }
 
-export function callJsonApi<T>(endpointUrl: string, queryComponents?: QueryComponent[], init?: RequestInit): Promise<T> {
-    return callApi(endpointUrl, queryComponents, init).then(response => response.json());
+export function callJsonApi<T>(url: string, init?: RequestInit): Promise<T> {
+    return callApi(url, init).then(response => response.json());
 }

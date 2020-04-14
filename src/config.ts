@@ -18,7 +18,9 @@ import { LanguageDictionary } from './util/lang';
 import { getQueryParameterByName } from './util/qparam';
 import lang from './resources/lang.json';
 
-const version = '0.3.2';
+const version = '0.5.0-dev.0';
+
+const defaultApiServerUrl = process.env.REACT_APP_XCUBE_API;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +37,7 @@ interface Branding {
     logoPath: any;
     logoWidth: number;
     baseMapUrl?: string;
+    defaultAgg?: 'median' | 'mean';
 }
 
 const brandings: { [name: string]: Branding } = {
@@ -43,7 +46,7 @@ const brandings: { [name: string]: Branding } = {
         windowTitle: 'xcube Viewer',
         defaultApiServerId: 'local',
         defaultApiServerName: 'Local Server',
-        defaultApiServerUrl: 'http://localhost:8080',
+        defaultApiServerUrl: defaultApiServerUrl || 'http://localhost:8080',
         themeName: 'dark',
         primaryColor: blue,
         secondaryColor: pink,
@@ -51,6 +54,7 @@ const brandings: { [name: string]: Branding } = {
         logoPath: require('./resources/default/logo.png'),
         logoWidth: 32,
         baseMapUrl: 'http://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        defaultAgg: 'mean',
     },
     'esdl': {
         appBarTitle: 'ESDL Viewer',
@@ -65,13 +69,14 @@ const brandings: { [name: string]: Branding } = {
         logoPath: require('./resources/esdl/logo.png'),
         logoWidth: 64,
         baseMapUrl: 'http://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        defaultAgg: 'mean',
     },
     'eodatabee': {
         appBarTitle: 'Demo Viewer',
         windowTitle: 'EODataBee Demo Viewer',
         defaultApiServerId: 'eodatabee',
         defaultApiServerName: 'EODataBee Server',
-        defaultApiServerUrl: 'https://xcube2.dcs4cop.eu/dcs4cop-dev/api/latest',
+        defaultApiServerUrl: defaultApiServerUrl || 'https://xcube2.dcs4cop.eu/dcs4cop-dev/api/latest',
         themeName: 'dark',
         primaryColor: {
             light: '#ffd77c',
@@ -84,13 +89,14 @@ const brandings: { [name: string]: Branding } = {
         logoPath: require('./resources/eodatabee/logo.png'),
         logoWidth: 150,
         baseMapUrl: 'http://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+        defaultAgg: 'mean',
     },
     'cyanoalert': {
         appBarTitle: '',
         windowTitle: 'CyanoAlert Viewer',
         defaultApiServerId: 'cyanoalert',
         defaultApiServerName: 'CyanoAlert Server',
-        defaultApiServerUrl: 'https://cyanoalert.brockmann-consult.com/api/latest',
+        defaultApiServerUrl: defaultApiServerUrl || 'https://cyanoalert.brockmann-consult.com/api/latest',
         themeName: 'dark',
         primaryColor: {
             light: '#ceef64',
@@ -103,6 +109,7 @@ const brandings: { [name: string]: Branding } = {
         logoPath: require('./resources/cyanoalert/logo.png'),
         logoWidth: 120,
         baseMapUrl: 'https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png',
+        defaultAgg: 'median',
     },
 };
 
@@ -189,7 +196,7 @@ export function getUserPlaceColor(colorName: string, paletteType: PaletteType): 
 }
 
 // See resources/maps.json
-const tileAccess: { [name:string]: TileAccess } = {
+const tileAccess: { [name: string]: TileAccess } = {
     'Mapbox': {
         param: 'access_token',
         token: 'pk.eyJ1IjoiZm9ybWFuIiwiYSI6ImNrM2JranV0bDBtenczb2szZG84djh6bWUifQ.q0UKwf4CWt5fcQwIDwF8Bg'

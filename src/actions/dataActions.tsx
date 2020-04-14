@@ -49,9 +49,9 @@ export function updateServerInfo() {
                dispatch(_updateServerInfo(serverInfo));
            })
            .catch(error => {
-               dispatch(postMessage('error', error + ''));
+               dispatch(postMessage('error', error));
            })
-           // 'then' because Microsoft Edge does not understand method finally
+            // 'then' because Microsoft Edge does not understand method finally
            .then(() => {
                dispatch(removeActivity(UPDATE_SERVER_INFO));
            });
@@ -78,17 +78,19 @@ export function updateDatasets() {
 
         dispatch(addActivity(UPDATE_DATASETS, I18N.get('Loading data')));
 
-        api.getDatasets(apiServer.url)
+        api.getDatasets(apiServer.url, getState().userAuthState.accessToken)
            .then((datasets: Dataset[]) => {
                dispatch(_updateDatasets(datasets));
                if (datasets.length > 0) {
-                   dispatch(selectDataset(datasets[0].id, datasets));
+                   const selectedDatasetId = datasets[0].id;
+                   dispatch(selectDataset(selectedDatasetId, datasets, true) as any);
                }
            })
            .catch(error => {
-               dispatch(postMessage('error', error + ''));
+               dispatch(postMessage('error', error));
+               dispatch(_updateDatasets([]));
            })
-           // 'then' because Microsoft Edge does not understand method finally
+            // 'then' because Microsoft Edge does not understand method finally
            .then(() => {
                dispatch(removeActivity(UPDATE_DATASETS));
            });
@@ -181,14 +183,18 @@ export function addTimeSeries() {
         const selectedPlaceId = selectedPlaceIdSelector(getState());
         const selectedPlace = selectedPlaceSelector(getState())!;
         const timeSeriesUpdateMode = getState().controlState.timeSeriesUpdateMode;
+        const useMedian = getState().controlState.showTimeSeriesMedian;
         const inclStDev = getState().controlState.showTimeSeriesErrorBars;
+        let timeChunkSize = getState().controlState.timeChunkSize;
 
         const placeGroups = placeGroupsSelector(getState());
 
         if (selectedDatasetId && selectedVariable && selectedPlaceId && selectedDatasetTimeDim) {
             const timeLabels = selectedDatasetTimeDim.labels;
             const numTimeLabels = timeLabels.length;
-            const timeChunkSize = 16;
+
+            timeChunkSize = timeChunkSize > 0 ? timeChunkSize : numTimeLabels;
+
             let endTimeIndex = numTimeLabels - 1;
             let startTimeIndex = endTimeIndex - timeChunkSize + 1;
 
@@ -202,7 +208,9 @@ export function addTimeSeries() {
                                                     selectedPlace.geometry,
                                                     startDateLabel,
                                                     endDateLabel,
-                                                    inclStDev);
+                                                    useMedian,
+                                                    inclStDev,
+                                                    getState().userAuthState.accessToken);
             };
 
             const successAction = (timeSeries: TimeSeries | null) => {
@@ -225,7 +233,7 @@ export function addTimeSeries() {
             getTimeSeriesChunk()
                 .then(successAction)
                 .catch((error: any) => {
-                    dispatch(postMessage('error', error + ''));
+                    dispatch(postMessage('error', error));
                 });
         }
     };
@@ -329,7 +337,7 @@ export function updateColorBars() {
                dispatch(_updateColorBars(colorBars));
            })
            .catch(error => {
-               dispatch(postMessage('error', error.message || `${error}`));
+               dispatch(postMessage('error', error));
            });
     };
 }

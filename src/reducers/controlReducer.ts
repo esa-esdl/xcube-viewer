@@ -1,35 +1,56 @@
-import { default as OlGeoJSONFormat } from 'ol/format/GeoJSON';
+import { default as OlSimpleGeometry } from 'ol/geom/SimpleGeometry';
+import { default as OlMap } from 'ol/Map';
+import { transformExtent as olProjTransformExtent } from 'ol/proj';
+import {
+    ADD_ACTIVITY,
+    CHANGE_LOCALE,
+    CLOSE_DIALOG,
+    ControlAction,
+    FLY_TO,
+    INC_SELECTED_TIME,
+    OPEN_DIALOG,
+    REMOVE_ACTIVITY,
+    SELECT_DATASET,
+    SELECT_PLACE,
+    SELECT_PLACE_GROUPS,
+    SELECT_TIME,
+    SELECT_TIME_RANGE,
+    SELECT_TIME_SERIES_UPDATE_MODE,
+    SELECT_VARIABLE,
+    SET_MAP_INTERACTION,
+    SET_RGB_LAYER_VISIBILITY,
+    SET_VISIBLE_INFO_CARD_ELEMENTS,
+    SHOW_INFO_CARD,
+    UPDATE_INFO_CARD_ELEMENT_VIEW_MODE,
+    UPDATE_SETTINGS,
+    UPDATE_TIME_ANIMATION,
+} from '../actions/controlActions';
+import {
+    ADD_USER_PLACE,
+    CONFIGURE_SERVERS,
+    DataAction,
+    REMOVE_USER_PLACE,
+    UPDATE_DATASETS
+} from '../actions/dataActions';
+import { I18N } from '../config';
 
 import { findDataset, findDatasetVariable, getDatasetTimeRange } from '../model/dataset';
-import { ControlState, newControlState } from '../states/controlState';
-import {
-    SELECT_DATASET,
-    SELECT_VARIABLE,
-    SELECT_PLACE_GROUPS,
-    SELECT_PLACE,
-    SELECT_TIME,
-    SELECT_TIME_SERIES_UPDATE_MODE,
-    ControlAction,
-    SELECT_TIME_RANGE,
-    UPDATE_TIME_ANIMATION,
-    ADD_ACTIVITY,
-    REMOVE_ACTIVITY,
-    CHANGE_LOCALE,
-    OPEN_DIALOG,
-    CLOSE_DIALOG,
-    INC_SELECTED_TIME,
-    UPDATE_SETTINGS, SET_MAP_INTERACTION,
-} from '../actions/controlActions';
-import { CONFIGURE_SERVERS, DataAction, ADD_USER_PLACE, REMOVE_USER_PLACE } from "../actions/dataActions";
-import { I18N } from "../config";
-import { AppState } from "../states/appState";
-import { selectedTimeIndexSelector, timeCoordinatesSelector } from "../selectors/controlSelectors";
-import { findIndexCloseTo } from "../util/find";
+import { selectedTimeIndexSelector, timeCoordinatesSelector } from '../selectors/controlSelectors';
+import { AppState } from '../states/appState';
+import { ControlState, MAP_OBJECTS, newControlState } from '../states/controlState';
 import { storeUserSettings } from '../states/userSettings';
+import { findIndexCloseTo } from '../util/find';
 import { getGlobalCanvasImageSmoothing, setGlobalCanvasImageSmoothing } from '../util/hacks';
 
 
-const SIMPLE_GEOMETRY_TYPES = ['Point', 'LineString', 'LinearRing', 'Polygon', 'MultiPoint', 'MultiLineString', 'MultiPolygon', 'Circle'];
+// TODO (forman): Refactor reducers for UPDATE_DATASETS, SELECT_DATASET, SELECT_PLACE, SELECT_VARIABLE
+//                so they produce a consistent state. E.g. on selected dataset change, ensure selected
+//                places and variables are still valid. Write tests for that.
+//                We currently still receiving error logs from Material-UI, e.g.:
+//                  SelectInput.js:304 Material-UI: you have provided an out-of-range value `local`
+//                  for the select (name="dataset") component.
+//                  Consider providing a value that matches one of the available options or ''.
+//                  The available values are "".
 
 export function controlReducer(state: ControlState | undefined, action: ControlAction | DataAction, appState: AppState | undefined): ControlState {
     if (state === undefined) {
@@ -42,19 +63,45 @@ export function controlReducer(state: ControlState | undefined, action: ControlA
                 setGlobalCanvasImageSmoothing(action.settings.imageSmoothingEnabled);
             }
             return action.settings;
+        case UPDATE_DATASETS: {
+            let selectedDatasetId = state!.selectedDatasetId;
+            let selectedVariableName = state!.selectedVariableName;
+            let mapInteraction = state!.mapInteraction;
+            let selectedDataset = findDataset(action.datasets, selectedDatasetId);
+            const selectedVariable = (selectedDataset
+                                      && findDatasetVariable(selectedDataset, selectedVariableName))
+                                     || null;
+            if (selectedDataset) {
+                if (selectedVariable) {
+                    return state;
+                } else {
+                    selectedVariableName = selectedDataset.variables.length ? selectedDataset.variables[0].name : null;
+                }
+            } else {
+                selectedDatasetId = null;
+                selectedVariableName = null;
+                selectedDataset = action.datasets.length ? action.datasets[0] : null;
+                if (selectedDataset) {
+                    selectedDatasetId = selectedDataset.id;
+                    if (selectedDataset.variables.length > 0) {
+                        selectedVariableName = selectedDataset.variables[0].name;
+                    }
+                }
+            }
+            if (!selectedDatasetId) {
+                mapInteraction = 'Select';
+            }
+            return {...state, selectedDatasetId, selectedVariableName, mapInteraction};
+        }
         case SELECT_DATASET: {
             let selectedVariableName = state.selectedVariableName;
-            const dataset = findDataset(action.datasets, action.selectedDatasetId)!;
-            const variable = findDatasetVariable(dataset, selectedVariableName);
-            if (!variable && dataset.variables.length > 0) {
-                selectedVariableName = dataset.variables[0].name;
-            }
-            let flyTo = state.flyTo;
-            if (dataset.bbox) {
-                flyTo = dataset.bbox;
+            const selectedDataset = findDataset(action.datasets, action.selectedDatasetId)!;
+            const selectedVariable = findDatasetVariable(selectedDataset, selectedVariableName);
+            if (!selectedVariable && selectedDataset.variables.length > 0) {
+                selectedVariableName = selectedDataset.variables[0].name;
             }
             const selectedDatasetId = action.selectedDatasetId;
-            const selectedTimeRange = getDatasetTimeRange(dataset);
+            const selectedTimeRange = getDatasetTimeRange(selectedDataset);
             const selectedTime = selectedTimeRange ? selectedTimeRange[1] : null;
             return {
                 ...state,
@@ -62,8 +109,39 @@ export function controlReducer(state: ControlState | undefined, action: ControlA
                 selectedVariableName,
                 selectedTimeRange,
                 selectedTime,
-                flyTo,
             };
+        }
+        case FLY_TO: {
+            const mapObject = MAP_OBJECTS[action.mapId];
+            const flyToCurr = action.location;
+            if (mapObject instanceof OlMap && flyToCurr !== null) {
+                const map = mapObject;
+                const projection = map.getView().getProjection();
+                let flyToTarget;
+                // noinspection JSDeprecatedSymbols
+                if (Array.isArray(flyToCurr)) {
+                    // Fly to extent (bounding box)
+                    flyToTarget = olProjTransformExtent(flyToCurr, 'EPSG:4326', projection);
+                    map.getView().fit(flyToTarget, {size: map.getSize()});
+                } else {
+                    // Transform Geometry object
+                    flyToTarget = flyToCurr.transform('EPSG:4326', projection) as OlSimpleGeometry;
+                    if (flyToTarget.getType() === 'Point') {
+                        // Points don't fly. Just reset map center. Not ideal, but better than zooming in too deep (see #54)
+                        map.getView().setCenter(flyToTarget.getFirstCoordinate());
+                    } else {
+                        // Fly to shape
+                        map.getView().fit(flyToTarget, {size: map.getSize()});
+                    }
+                }
+            }
+            if (state.flyTo !== action.location) {
+                return {
+                    ...state,
+                    flyTo: action.location,
+                };
+            }
+            return state;
         }
         case SELECT_PLACE_GROUPS: {
             const selectedPlaceGroupIds = action.selectedPlaceGroupIds;
@@ -76,27 +154,21 @@ export function controlReducer(state: ControlState | undefined, action: ControlA
         }
         case SELECT_PLACE: {
             const selectedPlaceId = action.selectedPlaceId;
-            let flyTo = state.flyTo;
-            if (selectedPlaceId && action.showInMap) {
-                const place = action.places.find(p => p.id === selectedPlaceId);
-                if (place) {
-                    if (place.bbox && place.bbox.length === 4) {
-                        flyTo = place.bbox as [number, number, number, number];
-                    } else if (place.geometry && SIMPLE_GEOMETRY_TYPES.includes(place.geometry.type)) {
-                        flyTo = new OlGeoJSONFormat().readGeometry(place.geometry);
-                    }
-                }
-            }
             return {
                 ...state,
                 selectedPlaceId,
-                flyTo
             };
         }
         case SELECT_VARIABLE: {
             return {
                 ...state,
                 selectedVariableName: action.selectedVariableName,
+            };
+        }
+        case SET_RGB_LAYER_VISIBILITY: {
+            return {
+                ...state,
+                showRgbLayer: action.showRgbLayer,
             };
         }
         case SELECT_TIME: {
@@ -206,6 +278,40 @@ export function controlReducer(state: ControlState | undefined, action: ControlA
                 ...state,
                 mapInteraction: action.mapInteraction
             };
+        }
+        case SHOW_INFO_CARD: {
+            state = {
+                ...state,
+                infoCardOpen: action.infoCardOpen,
+            };
+            storeUserSettings(state);
+            return state;
+        }
+        case SET_VISIBLE_INFO_CARD_ELEMENTS: {
+            const infoCardElementStates = {...state.infoCardElementStates};
+            Object.getOwnPropertyNames(infoCardElementStates).forEach(e => {
+                infoCardElementStates[e] = {...infoCardElementStates[e], visible: action.visibleElements.includes(e)};
+            });
+            state = {
+                ...state,
+                infoCardElementStates,
+            };
+            storeUserSettings(state);
+            return state;
+        }
+        case UPDATE_INFO_CARD_ELEMENT_VIEW_MODE: {
+            state = {
+                ...state,
+                infoCardElementStates: {
+                    ...state.infoCardElementStates,
+                    [action.elementType]: {
+                        ...state.infoCardElementStates[action.elementType],
+                        viewMode: action.viewMode
+                    }
+                },
+            };
+            storeUserSettings(state);
+            return state;
         }
         case ADD_ACTIVITY: {
             return {

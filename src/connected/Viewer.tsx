@@ -5,7 +5,9 @@ import { AppState } from '../states/appState';
 import {
     baseMapLayerSelector,
     selectedDatasetPlaceGroupLayersSelector,
-    selectedDatasetVariableLayerSelector, selectedPlaceGroupPlacesSelector
+    selectedDatasetRgbLayerSelector,
+    selectedDatasetVariableLayerSelector,
+    selectedPlaceGroupPlacesSelector
 } from '../selectors/controlSelectors';
 import { addUserPlace } from '../actions/dataActions';
 import Viewer from '../components/Viewer';
@@ -18,11 +20,12 @@ const mapStateToProps = (state: AppState) => {
     return {
         locale: state.controlState.locale,
         variableLayer: selectedDatasetVariableLayerSelector(state),
+        rgbLayer: selectedDatasetRgbLayerSelector(state),
         placeGroupLayers: selectedDatasetPlaceGroupLayersSelector(state),
         colorBarLegend: <ColorBarLegend/>,
         userPlaceGroup: userPlaceGroupSelector(state),
+        mapId: 'map',
         mapInteraction: state.controlState.mapInteraction,
-        flyTo: state.controlState.flyTo,
         selectedPlaceId: state.controlState.selectedPlaceId,
         places: selectedPlaceGroupPlacesSelector(state),
         baseMapLayer: baseMapLayerSelector(state),
