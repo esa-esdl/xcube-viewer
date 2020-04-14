@@ -5,10 +5,14 @@ cache:
   yarn: true
   directories:
     - node_modules
+
+env:
+  - XCUBE_VIEWER_VERSION="0.4.0"
+
 script:
-  - wget https://github.com/dcs4cop/xcube-viewer/archive/v0.4.0.tar.gz
-  - tar xvf v0.4.0.tar.gz
-  - cd xcube-viewer-0.4.0
+  - wget https://github.com/dcs4cop/xcube-viewer/archive/v${XCUBE_VIEWER_VERSION}.tar.gz
+  - tar xvf v${XCUBE_VIEWER_VERSION}.tar.gz
+  - cd xcube-viewer-${XCUBE_VIEWER_VERSION}
   - yarn install
   - yarn run build
 
